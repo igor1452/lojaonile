@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vaquejada Store</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f2eb;
+    margin: 0;
+    padding: 0;
+}
+h1 {
+    text-align: center;
+    margin-top: 20px;
+    color: #4b3f2f;
+}
+.carousel-container {
+    position: relative;
+    width: 90%;
+    max-width: 700px;
+    margin: 20px auto;
+    overflow: hidden;
+    border-radius: 15px;
+    background-color: #fff;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+.carousel-slide {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+}
+.carousel-slide > div {
+    min-width: 100%;
+    box-sizing: border-box;
+}
+.carousel-slide img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    display: block;
+    border-bottom: 1px solid #ddd;
+}
+.prev, .next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 30px;
+    color: #4b3f2f;
+    background-color: rgba(255,255,255,0.8);
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 50%;
+    z-index: 10;
+    transition: 0.3s;
+}
+.prev:hover, .next:hover {
+    background-color: rgba(255,255,255,1);
+}
+.prev { left: 10px; }
+.next { right: 10px; }
+
+.buy-button {
+    display: block;
+    width: 80%;
+    margin: 10px auto 20px auto;
+    padding: 12px;
+    background-color: #28a745;
+    color: #fff;
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+.buy-button:hover {
+    background-color: #218838;
+}
+
+.dots {
+    text-align: center;
+    padding: 10px 0;
+}
+.dot {
+    height: 12px;
+    width: 12px;
+    margin: 0 5px;
+    display: inline-block;
+    background-color: #bbb;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.active-dot {
+    background-color: #4b3f2f;
+}
+
+/* Botão de menu e painel de gerenciamento */
+.menu-toggle {
+    display: block;
+    width: 40px;
+    height: 30px;
+    margin: 10px auto;
+    cursor: pointer;
+    position: relative;
+}
+.menu-toggle span {
+    display: block;
+    height: 4px;
+    width: 100%;
+    background-color: #4b3f2f;
+    margin: 5px 0;
+    transition: 0.3s;
+}
+#admin-panel {
+    display: none;
+    max-width:700px;
+    margin: 10px auto;
+    text-align:center;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:10px;
+    background-color:#fff;
+    transition: max-height 0.5s ease;
+}
+.admin-row {
+    display:flex;
+    gap:8px;
+    justify-content:center;
+    align-items:center;
+    flex-wrap:wrap;
+}
+.admin-row input {
+    padding:6px;
+}
+
+/* Lista dentro do menu */
+#lista-produtos {
+    margin-top:10px;
+    text-align:left;
+    max-height:160px;
+    overflow:auto;
+    padding:6px;
+    border-top:1px dashed #ddd;
+}
+.produto-item {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:6px 0;
+}
+.produto-item img { width:60px; height:40px; object-fit:cover; border:1px solid #ddd; border-radius:4px; }
+.produto-item button { padding:6px 8px; border-radius:6px; border:none; cursor:pointer; }
+.btn-remove { background:#dc3545; color:#fff; }
+.btn-copy { background:#6c757d; color:#fff; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .carousel-container {
+        max-width: 95%;
+    }
+    .prev, .next {
+        font-size: 24px;
+        padding: 8px 12px;
+    }
+}
+</style>
+</head>
+<body>
+
+<h1>Vitrine de Produtos</h1>
+
+<!-- Botão três tracinhos -->
+<div class="menu-toggle" id="menu-toggle" title="Abrir/Fechar menu">
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+
+<!-- Painel de gerenciamento oculto inicialmente -->
+<div id="admin-panel">
+    <h2>Gerenciar Produtos</h2>
+
+    <!-- ADICIONEI AQUI O CAMPO DE SENHA -->
+    <div style="margin-bottom:10px;">
+        <strong>Senha de administração</strong>
+        <div class="admin-row" style="margin-top:6px;">
+            <input type="password" id="adminSenha" placeholder="Digite a senha de admin" style="width:70%;">
+        </div>
+    </div>
+    <!-- FIM CAMPO DE SENHA -->
+
+    <div style="margin-bottom:10px;">
+        <strong>Adicionar Produto</strong>
+        <div class="admin-row" style="margin-top:6px;">
+            <input type="text" id="produtoImagem" placeholder="URL da imagem" style="width:52%;">
+            <input type="text" id="produtoNome" placeholder="Nome do produto" style="width:30%;">
+            <button onclick="adicionarProduto()" style="padding:8px 12px; background-color:#28a745; color:#fff; border:none; border-radius:5px; cursor:pointer;">Adicionar</button>
+        </div>
+    </div>
+
+    <div style="margin-top:8px;">
+        <strong>Remover por URL</strong>
+        <div class="admin-row" style="margin-top:6px;">
+            <input type="text" id="produtoRemover" placeholder="Cole a URL da imagem aqui" style="width:70%;">
+            <button onclick="removerProdutoPorURL()" style="padding:8px 12px; background-color:#dc3545; color:#fff; border:none; border-radius:5px; cursor:pointer;">Remover</button>
+        </div>
+        <small style="color:#666;">OBS: Remove a primeira ocorrência que encontrar com essa URL.</small>
+    </div>
+
+    <div id="lista-produtos" aria-live="polite">
+        <!-- Lista dinâmica de produtos (mostra itens adicionados e iniciais) -->
+    </div>
+</div>
+
+<div class="carousel-container" id="carousel">
+    <div class="carousel-slide">
+        <div>
+            <img src="https://i.supaimg.com/ddf0dd10-e577-474f-ae21-c67b932cafcc.jpg" alt="Produto 1">
+            <a href="https://wa.me/559484255617?text=Ol%C3%A1%20me%20interessei%20no%20Produto%201%20e%20gostaria%20de%20comprar." class="buy-button" target="_blank">Comprar</a>
+        </div>
+        <div>
+            <img src="https://i.supaimg.com/dcc48a75-a187-4bfb-8e33-20a4fe8ac09b.jpg" alt="Produto 2">
+            <a href="https://wa.me/559484255617?text=Ol%C3%A1%20me%20interessei%20no%20Produto%202%20e%20gostaria%20de%20comprar." class="buy-button" target="_blank">Comprar</a>
+        </div>
+        <div>
+            <img src="https://i.supaimg.com/c25ce8f2-8a71-4e61-89f7-c0db10563479.jpg" alt="Produto 3">
+            <a href="https://wa.me/559484255617?text=Ol%C3%A1%20me%20interessei%20no%20Produto%203%20e%20gostaria%20de%20comprar." class="buy-button" target="_blank">Comprar</a>
+        </div>
+    </div>
+    <button class="prev" aria-label="Anterior">&#10094;</button>
+    <button class="next" aria-label="Próximo">&#10095;</button>
+</div>
+
+<div class="dots" id="dots"></div>
+
+<script>
+// — Dados iniciais (mantive os links que você tinha)
+let produtos = [
+    { imagem:'https://i.supaimg.com/ddf0dd10-e577-474f-ae21-c67b932cafcc.jpg', nome:'Produto 1' },
+    { imagem:'https://i.supaimg.com/dcc48a75-a187-4bfb-8e33-20a4fe8ac09b.jpg', nome:'Produto 2' },
+    { imagem:'https://i.supaimg.com/c25ce8f2-8a71-4e61-89f7-c0db10563479.jpg', nome:'Produto 3' }
+];
+
+const slide = document.querySelector('.carousel-slide');
+let slides = document.querySelectorAll('.carousel-slide > div');
+const prev = document.querySelector('.prev');
+const next = document.querySelector('.next');
+const dotsContainer = document.getElementById('dots');
+let counter = 0;
+
+// Cria os pontinhos (dots)
+function criarDots() {
+    dotsContainer.innerHTML = '';
+    slides = document.querySelectorAll('.carousel-slide > div'); // garante atualizar
+    slides.forEach((_, idx) => {
+        const dot = document.createElement('span');
+        dot.classList.add('dot');
+        if(idx === counter) dot.classList.add('active-dot');
+        dot.addEventListener('click', () => {
+            counter = idx;
+            updateSlide();
+        });
+        dotsContainer.appendChild(dot);
+    });
+}
+
+// Atualiza a posição do slide e o dot ativo
+function updateSlide() {
+    slides = document.querySelectorAll('.carousel-slide > div'); // mantém atual
+    if(slides.length === 0) {
+        slide.style.transform = 'translateX(0)';
+        dotsContainer.innerHTML = '';
+        return;
+    }
+    if(counter < 0) counter = 0;
+    if(counter >= slides.length) counter = slides.length - 1;
+    slide.style.transform = 'translateX(' + (-counter * 100) + '%)';
+
+    const dotsAtual = document.querySelectorAll('.dot');
+    dotsAtual.forEach(dot => dot.classList.remove('active-dot'));
+    if(dotsAtual[counter]) dotsAtual[counter].classList.add('active-dot');
+}
+
+// Eventos next/prev
+next.addEventListener('click', () => {
+    counter++;
+    if(counter >= slides.length) counter = 0;
+    updateSlide();
+});
+prev.addEventListener('click', () => {
+    counter--;
+    if(counter < 0) counter = slides.length - 1;
+    updateSlide();
+});
+
+// Swipe mobile
+let startX = 0;
+const carousel = document.getElementById('carousel');
+carousel.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; });
+carousel.addEventListener('touchend', (e) => {
+    const endX = e.changedTouches[0].clientX;
+    if(startX - endX > 50) next.click();
+    else if(endX - startX > 50) prev.click();
+});
+
+// Menu “três tracinhos”
+const menuToggle = document.getElementById('menu-toggle');
+const adminPanel = document.getElementById('admin-panel');
+menuToggle.addEventListener('click', () => {
+    adminPanel.style.display = (adminPanel.style.display === 'block') ? 'none' : 'block';
+});
+
+// Função para atualizar a lista dentro do painel (mostra todos os produtos atuais)
+function atualizarListaAdmin() {
+    const lista = document.getElementById('lista-produtos');
+    lista.innerHTML = '';
+    produtos.forEach((p, idx) => {
+        const item = document.createElement('div');
+        item.className = 'produto-item';
+        item.innerHTML = `
+            <img src="${p.imagem}" alt="${p.nome}">
+            <div style="flex:1">
+                <div style="font-weight:600">${p.nome}</div>
+                <div style="font-size:12px; color:#555; word-break:break-all;">${p.imagem}</div>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <button class="btn-copy" onclick="copiarLink('${p.imagem}')">Copiar link</button>
+                <button class="btn-remove" onclick="removerProdutoPorIndice(${idx})">Remover</button>
+            </div>
+        `;
+        lista.appendChild(item);
+    });
+}
+
+// Copiar link (ajuda)
+function copiarLink(link) {
+    if(navigator && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(() => {
+            alert('Link copiado!');
+        }).catch(()=> {
+            prompt('Copie o link abaixo:', link);
+        });
+    } else {
+        prompt('Copie o link abaixo:', link);
+    }
+}
+
+// --- FUNÇÃO DE CHECAGEM DE SENHA (ADICIONADA) ---
+function checkSenha() {
+    const senha = document.getElementById('adminSenha') ? document.getElementById('adminSenha').value : '';
+    return senha === 'Alexandre021';
+}
+// --------------------------------------------------
+
+// Adicionar produto (mantém produtos[] atualizado)
+function adicionarProduto() {
+    if(!checkSenha()) {
+        alert('Senha incorreta! Ação não permitida.');
+        return;
+    }
+
+    const imagem = document.getElementById('produtoImagem').value.trim();
+    const nome = document.getElementById('produtoNome').value.trim();
+    if(imagem && nome) {
+        produtos.push({ imagem, nome });
+        document.getElementById('produtoImagem').value = '';
+        document.getElementById('produtoNome').value = '';
+
+        // Adiciona ao carrossel
+        const div = document.createElement('div');
+        div.innerHTML = `<img src="${imagem}" alt="${nome}">
+            <a href="https://wa.me/559484255617?text=${encodeURIComponent('Olá me interessei no ' + nome + ' e gostaria de comprar.')}" class="buy-button" target="_blank">Comprar</a>`;
+        slide.appendChild(div);
+
+        slides = document.querySelectorAll('.carousel-slide > div');
+        // mostra o item novo
+        counter = slides.length - 1;
+        criarDots();
+        updateSlide();
+        atualizarListaAdmin();
+    } else {
+        alert('Por favor, preencha todos os campos.');
+    }
+}
+
+// Remover produto por URL (remove a primeira ocorrência)
+function removerProdutoPorURL() {
+    if(!checkSenha()) {
+        alert('Senha incorreta! Ação não permitida.');
+        return;
+    }
+
+    const url = document.getElementById('produtoRemover').value.trim();
+    if(!url) {
+        alert('Por favor, insira o link da imagem que deseja remover.');
+        return;
+    }
+    const index = produtos.findIndex(p => p.imagem === url);
+    if(index === -1) {
+        alert('Produto não encontrado (verifique a URL).');
+        return;
+    }
+    // remover da lista de dados
+    produtos.splice(index, 1);
+
+    // remover do carrossel (elemento DOM correspondente)
+    slides = document.querySelectorAll('.carousel-slide > div');
+    if(slides[index]) slides[index].remove();
+
+    // atualiza variáveis e UI
+    slides = document.querySelectorAll('.carousel-slide > div');
+    if(counter >= slides.length) counter = Math.max(0, slides.length - 1);
+    criarDots();
+    updateSlide();
+    atualizarListaAdmin();
+    document.getElementById('produtoRemover').value = '';
+}
+
+// Remover por índice (usado pela lista do admin para remover itens recém adicionados)
+function removerProdutoPorIndice(index) {
+    if(!checkSenha()) {
+        alert('Senha incorreta! Ação não permitida.');
+        return;
+    }
+
+    if(index < 0 || index >= produtos.length) return;
+    produtos.splice(index, 1);
+    slides = document.querySelectorAll('.carousel-slide > div');
+    if(slides[index]) slides[index].remove();
+
+    slides = document.querySelectorAll('.carousel-slide > div');
+    if(counter >= slides.length) counter = Math.max(0, slides.length - 1);
+    criarDots();
+    updateSlide();
+    atualizarListaAdmin();
+}
+
+// inicialização
+criarDots();
+updateSlide();
+atualizarListaAdmin();
+</script>
+
+</body>
+</html>
